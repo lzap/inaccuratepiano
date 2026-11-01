@@ -57,7 +57,7 @@ make check
 make package
 ```
 
-The package is written to `dist/inaccurate-piano-midi-1.0.0.zip`, with `manifest.json` at its root. The finished PNG icons are included in the repository. Increase the version in `manifest.json` before packaging a new release.
+The package is written to `dist/inaccurate-piano-midi-<version>.zip`, where `<version>` is read from `manifest.json`. The ZIP contains `manifest.json` at its root. The finished PNG icons are included in the repository. Increase the version in `manifest.json` before packaging a new release.
 
 ## Load locally
 
@@ -69,3 +69,7 @@ The package is written to `dist/inaccurate-piano-midi-1.0.0.zip`, with `manifest
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+## Sponsorship
+
+If you find this project useful, you can [sponsor its developer on GitHub](https://github.com/sponsors/lzap).
