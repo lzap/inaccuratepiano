@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Inaccurate Piano MIDI</title>
+    <link rel="stylesheet" href="popup.css">
+    <script src="popup.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <img class="mark" src="icons/icon-48.png" alt="" aria-hidden="true">
+        <div>
+          <h1>Inaccurate Piano MIDI</h1>
+          <p class="subtitle">Cue YouTube from your instrument</p>
+        </div>
+      </header>
+
+      <p id="status" class="status" role="status" aria-live="polite">Checking page…</p>
+      <p class="privacy-note">MIDI events and video position are processed locally. Chrome stores your profile, custom mappings, and reconnect preference.</p>
+      <button id="connect" class="primary" type="button" disabled>Connect MIDI</button>
+      <p id="devices" class="muted">No MIDI inputs connected.</p>
+
+      <label for="profile">Mapping profile</label>
+      <select id="profile" disabled>
+        <option value="pedals">3-Pedal Setup</option>
+        <option value="piano88">88-Key Piano (lowest keys)</option>
+        <option value="piano61">61-Key Piano (lowest keys)</option>
+        <option value="custom">Custom Mapping</option>
+      </select>
+
+      <section aria-labelledby="mapping-heading">
+        <h2 id="mapping-heading">Custom Mapping</h2>
+        <p class="muted">Capture a note or CC press. The first capture copies the selected profile.</p>
+        <div class="mapping-row">
+          <div><strong>Set Cue Point</strong><span id="cue-binding"></span></div>
+          <button class="capture" type="button" data-action="cue" disabled>Capture</button>
+        </div>
+        <div class="mapping-row">
+          <div><strong>Jump &amp; Play</strong><span id="jump-binding"></span></div>
+          <button class="capture" type="button" data-action="jump" disabled>Capture</button>
+        </div>
+        <div class="mapping-row">
+          <div><strong>Play/Pause Toggle</strong><span id="toggle-binding"></span></div>
+          <button class="capture" type="button" data-action="toggle" disabled>Capture</button>
+        </div>
+      </section>
+
+      <p id="cue-time" class="cue-time">Cue point: 0:00</p>
+      <p id="hint" class="hint">Open a YouTube watch page to begin.</p>
+    </main>
+  </body>
+</html>

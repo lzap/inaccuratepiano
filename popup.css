@@ -1,0 +1,31 @@
+:root { color-scheme: light; font: 13px/1.4 system-ui, sans-serif; }
+* { box-sizing: border-box; }
+body { width: 330px; margin: 0; color: #1b2230; background: #f8f9fc; }
+main { padding: 16px; }
+header { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; }
+.mark { display: block; width: 35px; height: 35px; flex: none; }
+h1 { margin: 0; font-size: 15px; line-height: 1.2; }
+h2 { margin: 0 0 3px; font-size: 13px; }
+p { margin: 0; }
+.subtitle, .muted, .hint { color: #5b6474; font-size: 12px; }
+.status { padding: 8px 10px; border-radius: 7px; background: #e9eef8; color: #24406c; margin-bottom: 9px; }
+.status.error { background: #fceaea; color: #8d2727; }
+.privacy-note { color: #5b6474; font-size: 11px; margin-bottom: 10px; }
+button, select { font: inherit; }
+button { cursor: pointer; border-radius: 6px; border: 1px solid #b8c3d2; padding: 6px 10px; color: #24344d; background: white; }
+button:hover:not(:disabled) { background: #edf2f9; }
+button:disabled, select:disabled { cursor: default; opacity: .52; }
+button:focus-visible, select:focus-visible { outline: 2px solid #265cbe; outline-offset: 2px; }
+.primary { width: 100%; border-color: #294675; background: #294675; color: white; font-weight: 600; }
+.primary:hover:not(:disabled) { background: #20375c; }
+#devices { margin: 7px 0 16px; overflow-wrap: anywhere; }
+label { display: block; font-weight: 600; margin-bottom: 5px; }
+select { width: 100%; padding: 7px 9px; border: 1px solid #bbc5d1; border-radius: 6px; background: white; color: #1b2230; }
+section { margin-top: 18px; }
+section > .muted { margin-bottom: 10px; }
+.mapping-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 0; border-top: 1px solid #dce2eb; }
+.mapping-row strong { display: block; font-size: 12px; }
+.mapping-row span { display: block; margin-top: 2px; font-size: 11px; color: #5b6474; }
+.mapping-row button { flex: none; min-width: 68px; }
+.cue-time { border-top: 1px solid #dce2eb; padding-top: 12px; margin-top: 4px; font-weight: 600; }
+.hint { margin-top: 8px; }
