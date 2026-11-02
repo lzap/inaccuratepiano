@@ -48,6 +48,10 @@ Your first capture copies the selected profile, so the other action keeps its cu
 
 Your profile and custom mappings stay in Chrome's local extension storage. See the [privacy policy](PRIVACY.md) for details.
 
+## Sponsorship
+
+If you find this project useful, you can [sponsor its developer on GitHub](https://github.com/sponsors/lzap).
+
 ## Build from source
 
 The extension uses plain JavaScript, HTML, and CSS. It has no npm dependencies. Python 3 and `make` are needed to create the Chrome Web Store ZIP:
@@ -69,7 +73,3 @@ The package is written to `dist/inaccurate-piano-midi-<version>.zip`, where `<ve
 ## License
 
 MIT. See [LICENSE](LICENSE).
-
-## Sponsorship
-
-If you find this project useful, you can [sponsor its developer on GitHub](https://github.com/sponsors/lzap).
