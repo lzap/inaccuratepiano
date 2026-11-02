@@ -1,4 +1,4 @@
-# Inaccurate Piano MIDI
+# Inaccurate Piano MIDI (Chrome Extension)
 
 Learning a piece from a YouTube video often means replaying the same few seconds over and over. Reaching for the mouse to pause, scrub back, and start again breaks your concentration and takes your hands away from the piano.
 
