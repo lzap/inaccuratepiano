@@ -12,9 +12,9 @@ The idea comes from the **Cue/Play** controls on DJ decks. A cue point marks a p
 
 - **Set Cue Point** saves the video's current position.
 - **Jump & Play** returns to that position and starts playback.
-- **Hold Jump & Play** for 600 ms pauses the video and returns to the cue point.
+- **Hold Jump & Play** pauses the video and returns to the cue point.
 
-For example, pause at the start of a difficult phrase and set a cue point. Press Jump & Play to start from there. To hear the phrase again while the video is playing, press it again. Hold it when you want to stop and prepare another attempt: the video pauses at the cue point. Set a new cue when you move on. The repeat is triggered by you; the extension does not run an automatic loop.
+For example, when a difficult phrase begins, set a cue point. Press Jump & Play to start from there. To hear the phrase again while the video is playing, press it again to restart from the cue. When you want to stop between attempts, hold it to return to the cue and pause there. Set a new cue when you move on. The repeat is triggered by you; the extension does not run an automatic loop.
 
 Each new video starts with a cue at 0:00. Setting a cue replaces it for the current video.
 
@@ -30,13 +30,13 @@ After access has been granted, the extension reconnects automatically on later w
 
 ## Default controls
 
-| Profile | Set Cue Point | Jump & Play (press) | Stop at Cue (hold 600 ms) |
+| Profile | Set Cue Point | Jump & Play (press) | Stop at Cue (hold) |
 | --- | --- | --- | --- |
 | **3-Pedal Setup** | Middle pedal (sostenuto), **CC 66** | Left pedal (soft/una corda), **CC 67** | Hold the left pedal, **CC 67** |
 | **88-Key Piano** | Leftmost white key, **A0 / MIDI note 21** | First black key, **A#0 / note 22** | Hold the first black key, **A#0 / note 22** |
 | **61-Key Piano** | Leftmost white key, **C2 / MIDI note 36** | First black key, **C#2 / note 37** | Hold the first black key, **C#2 / note 37** |
 
-In every profile, pressing the Jump & Play control seeks to the cue and starts playback immediately. Holding it for at least 600 ms pauses the video and returns to the cue; releasing sooner leaves playback running. Other keys and pedals are left unmapped. All default mappings accept any MIDI channel.
+In every profile, pressing the Jump & Play control seeks to the cue and starts playback immediately; holding it pauses the video and returns to the cue. Other keys and pedals are left unmapped. All default mappings accept any MIDI channel.
 
 The key positions above assume the usual A0 start for an 88-key piano and C2 start for a 61-key piano. Some instruments label octaves differently or send different MIDI numbers. The **MIDI note and CC numbers** in the table are what the extension actually listens for; use a custom mapping if your instrument differs.
 
