@@ -7,23 +7,20 @@
   }
 
   const STORAGE_KEY = "config";
-  const DOUBLE_TAP_MS = 350;
-  const ACTIONS = ["cue", "jump", "toggle"];
+  const HOLD_MS = 600;
+  const ACTIONS = ["cue", "jump"];
   const PROFILES = {
     pedals: {
       cue: { kind: "cc", number: 66, channel: null },
-      jump: { kind: "cc", number: 67, channel: null },
-      toggle: { kind: "doubleTap", number: 67, channel: null }
+      jump: { kind: "cc", number: 67, channel: null }
     },
     piano88: {
       cue: { kind: "note", number: 21, channel: null },
-      jump: { kind: "note", number: 22, channel: null },
-      toggle: { kind: "note", number: 23, channel: null }
+      jump: { kind: "note", number: 22, channel: null }
     },
     piano61: {
       cue: { kind: "note", number: 36, channel: null },
-      jump: { kind: "note", number: 37, channel: null },
-      toggle: { kind: "note", number: 38, channel: null }
+      jump: { kind: "note", number: 37, channel: null }
     }
   };
 
@@ -33,7 +30,8 @@
   let capture = null;
   let cuePoint = 0;
   let videoId = null;
-  let lastTap = null;
+  let holdTimer = null;
+  let holdKey = null;
   let error = "";
   const pressed = new Set();
 
@@ -47,19 +45,25 @@
       Boolean(new URL(location.href).searchParams.get("v"));
   }
 
+  function cancelHold() {
+    if (holdTimer !== null) clearTimeout(holdTimer);
+    holdTimer = null;
+    holdKey = null;
+  }
+
   function refreshPage() {
     const nextId = isWatchPage() ? new URL(location.href).searchParams.get("v") : null;
     if (nextId !== videoId) {
       videoId = nextId;
       cuePoint = 0;
       capture = null;
-      lastTap = null;
+      cancelHold();
       pressed.clear();
     }
   }
 
   function validBinding(binding) {
-    if (!binding || !["note", "cc", "doubleTap"].includes(binding.kind) ||
+    if (!binding || !["note", "cc"].includes(binding.kind) ||
         !Number.isInteger(binding.number) || binding.number < 0 || binding.number > 127 ||
         !(binding.channel === null || Number.isInteger(binding.channel) &&
           binding.channel >= 0 && binding.channel <= 15)) {
@@ -97,6 +101,7 @@
   function play(video) {
     const result = video.play();
     if (result?.catch) result.catch((reason) => {
+      if (reason?.name === "AbortError" && video.paused) return;
       error = `Playback was blocked: ${reason.message || reason}`;
     });
   }
@@ -114,12 +119,29 @@
     }
   }
 
-  function togglePlay() {
+  function stopAtCue() {
     const video = getVideo();
     if (!video) return;
-    if (video.paused) play(video);
-    else video.pause();
-    error = "";
+    try {
+      video.pause();
+      const end = Number.isFinite(video.duration) ? video.duration : cuePoint;
+      video.currentTime = Math.min(cuePoint, end);
+      error = "";
+    } catch (reason) {
+      error = `Could not return to cue: ${reason.message || reason}`;
+    }
+  }
+
+  function startHold(key) {
+    cancelHold();
+    holdKey = key;
+    holdTimer = setTimeout(() => {
+      holdTimer = null;
+      if (holdKey !== key || !pressed.has(key) ||
+          document.visibilityState === "hidden" || !isWatchPage()) return;
+      holdKey = null;
+      stopAtCue();
+    }, HOLD_MS);
   }
 
   function matches(binding, event) {
@@ -127,14 +149,10 @@
       (binding.channel === null || binding.channel === event.channel);
   }
 
-  function conflicts(candidate, other, action, otherAction) {
-    const kind = (item) => item.kind === "doubleTap" ? "cc" : item.kind;
-    if (kind(candidate) !== kind(other) || candidate.number !== other.number ||
-        !(candidate.channel === null || other.channel === null ||
-          candidate.channel === other.channel)) return false;
-    // The pedal profile intentionally shares CC 67: first press jumps, second toggles.
-    if (other.kind === "doubleTap" && action === "jump" && otherAction === "toggle") return false;
-    return true;
+  function conflicts(candidate, other) {
+    return other && candidate.kind === other.kind && candidate.number === other.number &&
+      (candidate.channel === null || other.channel === null ||
+        candidate.channel === other.channel);
   }
 
   async function saveCapture(event) {
@@ -144,7 +162,7 @@
     const custom = clone(pending.base);
     for (const otherAction of ACTIONS) {
       if (otherAction !== pending.action &&
-          conflicts(binding, custom[otherAction], pending.action, otherAction)) {
+          conflicts(binding, custom[otherAction])) {
         error = "That MIDI control is already assigned to another action.";
         return;
       }
@@ -174,6 +192,7 @@
       type === 0xb0 && value === 0;
     if (release) {
       pressed.delete(key);
+      if (holdKey === key) cancelHold();
       return;
     }
     if (pressed.has(key)) return;
@@ -185,21 +204,11 @@
     }
 
     const bindings = activeBindings();
-    const doubleTap = bindings.toggle;
-    if (doubleTap.kind === "doubleTap" &&
-        matches({ ...doubleTap, kind: "cc" }, event)) {
-      const now = performance.now();
-      if (lastTap?.key === key && now - lastTap.time <= DOUBLE_TAP_MS) {
-        lastTap = null;
-        togglePlay();
-        return;
-      }
-      lastTap = { key, time: now };
-    }
-
     if (matches(bindings.cue, event)) setCue();
-    else if (matches(bindings.jump, event)) jumpAndPlay();
-    else if (matches(bindings.toggle, event)) togglePlay();
+    else if (matches(bindings.jump, event)) {
+      jumpAndPlay();
+      startHold(key);
+    }
   }
 
   function syncInputs() {
@@ -207,6 +216,7 @@
     for (const input of midiAccess.inputs.values()) {
       input.onmidimessage = input.state === "connected" ? handleMidiMessage : null;
     }
+    cancelHold();
     pressed.clear();
   }
 
@@ -267,7 +277,7 @@
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === "local" && changes[STORAGE_KEY]) {
       config = normalizeConfig(changes[STORAGE_KEY].newValue);
-      lastTap = null;
+      cancelHold();
     }
   });
 
@@ -307,7 +317,7 @@
   document.addEventListener("yt-navigate-finish", refreshPage);
   document.addEventListener("visibilitychange", () => {
     pressed.clear();
-    lastTap = null;
+    cancelHold();
   });
   window.addEventListener("popstate", refreshPage);
   globalThis.__inaccuratePianoMidi = { refreshPage };

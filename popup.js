@@ -7,8 +7,7 @@ const hintElement = document.querySelector("#hint");
 const captureButtons = [...document.querySelectorAll("button.capture")];
 const bindingElements = {
   cue: document.querySelector("#cue-binding"),
-  jump: document.querySelector("#jump-binding"),
-  toggle: document.querySelector("#toggle-binding")
+  jump: document.querySelector("#jump-binding")
 };
 
 let tabId = null;
@@ -37,7 +36,6 @@ function formatTime(seconds) {
 function formatBinding(binding) {
   if (!binding) return "Not assigned";
   const channel = binding.channel === null ? "any channel" : `channel ${binding.channel + 1}`;
-  if (binding.kind === "doubleTap") return `Double-tap CC ${binding.number} · ${channel}`;
   if (binding.kind === "cc") return `CC ${binding.number} · ${channel}`;
   const names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
   const note = `${names[binding.number % 12]}${Math.floor(binding.number / 12) - 1}`;
@@ -73,9 +71,7 @@ function render(status) {
     button.disabled = busy || !status.connected || Boolean(status.captureAction && !capturing);
   }
   cueTimeElement.textContent = `Cue point: ${formatTime(status.cuePoint)}`;
-  hintElement.textContent = status.profile === "pedals"
-    ? "CC 67: one press jumps; two quick presses toggle playback."
-    : "Captured controls are saved locally and switch to Custom Mapping.";
+  hintElement.textContent = "Press Jump & Play to restart; hold for 600 ms to pause at the cue.";
 }
 
 async function send(type, extra = {}) {

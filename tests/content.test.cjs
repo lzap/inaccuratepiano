@@ -6,8 +6,8 @@ const vm = require("node:vm");
 
 const script = fs.readFileSync(path.join(__dirname, "..", "content.js"), "utf8");
 
-function harness() {
-  const store = {};
+function harness(initialStore = {}) {
+  const store = { ...initialStore };
   const storageListeners = [];
   const documentListeners = {};
   const input = { id: "keyboard", name: "Keyboard", state: "connected", onmidimessage: null };
@@ -32,6 +32,8 @@ function harness() {
   };
   let listener;
   let now = 0;
+  let nextTimerId = 1;
+  const timers = new Map();
   const chrome = {
     storage: {
       local: {
@@ -55,7 +57,12 @@ function harness() {
       requestMIDIAccess: async () => midiAccess,
       permissions: { query: async () => ({ state: "granted" }) }
     },
-    performance: { now: () => now },
+    setTimeout(callback, delay) {
+      const id = nextTimerId++;
+      timers.set(id, { time: now + delay, callback });
+      return id;
+    },
+    clearTimeout(id) { timers.delete(id); },
     URL, console
   });
   vm.runInContext(script, context);
@@ -72,10 +79,18 @@ function harness() {
     input.onmidimessage({ currentTarget: input, data: [status, number, value] });
   }
   return { send, emit, store, video, document, location, documentListeners,
-    setTime(value) { now = value; } };
+    setTime(value) {
+      now = value;
+      for (const [id, timer] of [...timers]) {
+        if (timer.time <= now) {
+          timers.delete(id);
+          timer.callback();
+        }
+      }
+    } };
 }
 
-test("pedal cue, jump, and double-tap toggle", async () => {
+test("pedal cue and repeated jump presses", async () => {
   const h = harness();
   await h.send("CONNECT");
   h.video.currentTime = 12.5;
@@ -89,28 +104,108 @@ test("pedal cue, jump, and double-tap toggle", async () => {
   assert.equal(h.video.currentTime, 12.5);
   assert.equal(h.video.paused, false);
   h.emit(0xb0, 67, 0);
+  h.video.currentTime = 20;
   h.setTime(280);
   h.emit(0xb0, 67, 127);
-  assert.equal(h.video.paused, true);
+  assert.equal(h.video.paused, false);
   assert.equal(h.video.currentTime, 12.5);
+  assert.deepEqual(Object.keys((await h.send("GET_STATUS")).bindings), ["cue", "jump"]);
 });
 
-test("both keyboard profiles use note on, with velocity-zero release", async () => {
+test("hold pause ignores interrupted play but reports actual playback failure", async () => {
   const h = harness();
   await h.send("CONNECT");
+  let rejectPlay;
+  h.video.play = function () {
+    this.paused = false;
+    return new Promise((_, reject) => { rejectPlay = reject; });
+  };
+  h.video.pause = function () {
+    this.paused = true;
+    const interrupted = new Error("The play() request was interrupted by a call to pause().");
+    interrupted.name = "AbortError";
+    rejectPlay(interrupted);
+  };
+
+  h.setTime(100);
+  h.emit(0xb0, 67, 127);
+  h.setTime(700);
+  await new Promise(setImmediate);
+  assert.equal(h.video.paused, true);
+  assert.equal((await h.send("GET_STATUS")).error, "");
+
+  const blocked = harness();
+  await blocked.send("CONNECT");
+  blocked.video.play = function () {
+    const denied = new Error("User activation is required.");
+    denied.name = "NotAllowedError";
+    return Promise.reject(denied);
+  };
+  blocked.emit(0xb0, 67, 127);
+  await new Promise(setImmediate);
+  assert.match((await blocked.send("GET_STATUS")).error, /Playback was blocked: User activation is required/);
+});
+
+test("holding a jump pedal pauses and returns to cue, while a short tap keeps playing", async () => {
+  const h = harness();
+  await h.send("CONNECT");
+  h.video.currentTime = 12;
+  h.emit(0xb0, 66, 127);
+  h.emit(0xb0, 66, 0);
+
+  h.video.currentTime = 40;
+  h.setTime(100);
+  h.emit(0xb0, 67, 127);
+  assert.equal(h.video.currentTime, 12);
+  assert.equal(h.video.paused, false);
+  h.setTime(400);
+  h.emit(0xb0, 67, 0);
+  h.setTime(800);
+  assert.equal(h.video.paused, false);
+
+  h.video.currentTime = 50;
+  h.setTime(1000);
+  h.emit(0xb0, 67, 127);
+  assert.equal(h.video.currentTime, 12);
+  h.setTime(1599);
+  assert.equal(h.video.paused, false);
+  h.setTime(1600);
+  assert.equal(h.video.paused, true);
+  assert.equal(h.video.currentTime, 12);
+  h.emit(0xb0, 67, 0);
+  assert.equal((await h.send("GET_STATUS")).error, "");
+});
+
+test("both keyboard profiles jump on press and stop at cue on hold", async () => {
   for (const [profile, notes] of [["piano88", [21, 22, 23]], ["piano61", [36, 37, 38]]]) {
+    const h = harness();
+    await h.send("CONNECT");
     await h.send("SET_PROFILE", { profile });
     h.video.currentTime = 19;
     h.emit(0x90, notes[0], 90);
     h.emit(0x90, notes[0], 0);
     h.video.currentTime = 35;
+    h.setTime(100);
     h.emit(0x90, notes[1], 100);
     assert.equal(h.video.currentTime, 19);
     assert.equal(h.video.paused, false);
+    h.setTime(400);
     h.emit(0x80, notes[1], 0);
+    h.setTime(800);
+    assert.equal(h.video.paused, false);
+
+    h.video.currentTime = 42;
+    h.setTime(1000);
+    h.emit(0x90, notes[1], 100);
+    assert.equal(h.video.currentTime, 19);
+    h.setTime(1599);
+    assert.equal(h.video.paused, false);
+    h.setTime(1600);
+    assert.equal(h.video.paused, true);
+    assert.equal(h.video.currentTime, 19);
+    h.emit(0x90, notes[1], 0);
     h.emit(0x90, notes[2], 100);
     assert.equal(h.video.paused, true);
-    h.emit(0x90, notes[2], 0);
   }
 });
 
@@ -132,6 +227,25 @@ test("capture saves the MIDI channel and rejects a duplicate binding", async () 
   await new Promise(setImmediate);
   assert.match((await h.send("GET_STATUS")).error, /already assigned/);
   assert.equal(h.store.config.custom.jump.number, 22);
+});
+
+test("an old third-action mapping is ignored and removed when saving custom settings", async () => {
+  const h = harness({ config: {
+    profile: "custom",
+    custom: {
+      cue: { kind: "cc", number: 66, channel: null },
+      jump: { kind: "cc", number: 67, channel: null },
+      toggle: { kind: "doubleTap", number: 67, channel: null }
+    }
+  } });
+  await h.send("CONNECT");
+  assert.deepEqual(Object.keys((await h.send("GET_STATUS")).bindings), ["cue", "jump"]);
+  await h.send("START_CAPTURE", { action: "jump" });
+  h.emit(0xb0, 68, 127);
+  await new Promise(setImmediate);
+  assert.deepEqual(JSON.parse(JSON.stringify(h.store.config.custom.jump)),
+    { kind: "cc", number: 68, channel: 0 });
+  assert.equal(Object.hasOwn(h.store.config.custom, "toggle"), false);
 });
 
 test("cue resets for a new video and hidden pages ignore MIDI", async () => {

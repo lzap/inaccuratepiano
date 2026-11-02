@@ -2,7 +2,7 @@
 
 Learning a piece from a YouTube video often means replaying the same few seconds over and over. Reaching for the mouse to pause, scrub back, and start again breaks your concentration and takes your hands away from the piano.
 
-Inaccurate Piano MIDI lets a connected MIDI keyboard or pedals control the video instead. You can mark a starting point, jump back to it and play, or pause and resume, all from your instrument. It is a small Chrome extension with no account or external service.
+Inaccurate Piano MIDI lets a connected MIDI keyboard or pedals control the video instead. You can mark a starting point, restart playback from it, or hold the control to pause and return to that point, all from your instrument. It is a small Chrome extension with no account or external service.
 
 ![The extension popup beside a piano practice video](store-assets/screenshot-1280x800.png)
 
@@ -12,9 +12,9 @@ The idea comes from the **Cue/Play** controls on DJ decks. A cue point marks a p
 
 - **Set Cue Point** saves the video's current position.
 - **Jump & Play** returns to that position and starts playback.
-- **Play/Pause Toggle** stops or resumes the video where it is.
+- **Hold Jump & Play** for 600 ms pauses the video and returns to the cue point.
 
-For example, pause at the start of a difficult phrase and set a cue point. Play along until you need another attempt, then press Jump & Play to hear the phrase again. You can repeat it as many times as you like, pause to work through a passage, and set a new cue when you move on. The repeat is triggered by you; the extension does not run an automatic loop.
+For example, pause at the start of a difficult phrase and set a cue point. Press Jump & Play to start from there. To hear the phrase again while the video is playing, press it again. Hold it when you want to stop and prepare another attempt: the video pauses at the cue point. Set a new cue when you move on. The repeat is triggered by you; the extension does not run an automatic loop.
 
 Each new video starts with a cue at 0:00. Setting a cue replaces it for the current video.
 
@@ -30,13 +30,13 @@ After access has been granted, the extension reconnects automatically on later w
 
 ## Default controls
 
-| Profile | Set Cue Point | Jump & Play | Play/Pause Toggle |
+| Profile | Set Cue Point | Jump & Play (press) | Stop at Cue (hold 600 ms) |
 | --- | --- | --- | --- |
-| **3-Pedal Setup** | Middle pedal (sostenuto), **CC 66** | Left pedal (soft/una corda), **CC 67** | Double-tap the left pedal, **CC 67**, within 350 ms |
-| **88-Key Piano** | Leftmost white key, **A0 / MIDI note 21** | First black key, **A#0 / note 22** | Next white key, **B0 / note 23** |
-| **61-Key Piano** | Leftmost white key, **C2 / MIDI note 36** | First black key, **C#2 / note 37** | Next white key, **D2 / note 38** |
+| **3-Pedal Setup** | Middle pedal (sostenuto), **CC 66** | Left pedal (soft/una corda), **CC 67** | Hold the left pedal, **CC 67** |
+| **88-Key Piano** | Leftmost white key, **A0 / MIDI note 21** | First black key, **A#0 / note 22** | Hold the first black key, **A#0 / note 22** |
+| **61-Key Piano** | Leftmost white key, **C2 / MIDI note 36** | First black key, **C#2 / note 37** | Hold the first black key, **C#2 / note 37** |
 
-In the pedal profile, the first left-pedal press jumps and plays immediately. A second press within 350 ms toggles playback without jumping again. Release the pedal between taps. All default mappings accept any MIDI channel.
+In every profile, pressing the Jump & Play control seeks to the cue and starts playback immediately. Holding it for at least 600 ms pauses the video and returns to the cue; releasing sooner leaves playback running. Other keys and pedals are left unmapped. All default mappings accept any MIDI channel.
 
 The key positions above assume the usual A0 start for an 88-key piano and C2 start for a 61-key piano. Some instruments label octaves differently or send different MIDI numbers. The **MIDI note and CC numbers** in the table are what the extension actually listens for; use a custom mapping if your instrument differs.
 
@@ -44,7 +44,7 @@ The key positions above assume the usual A0 start for an 88-key piano and C2 sta
 
 To assign a control yourself, connect MIDI, click **Capture** beside an action, then press the key or pedal you want to use. The extension accepts a Note On or a Control Change (CC) press. It saves the message type, number, and MIDI channel locally, then switches to **Custom Mapping**.
 
-Your first capture copies the selected profile, so the other two actions keep their existing controls. You can then capture each one separately. For example, capture a different CC for Play/Pause Toggle if you want a dedicated pedal instead of the double-tap. The popup rejects a control that would trigger two actions; click **Cancel** to stop a capture in progress.
+Your first capture copies the selected profile, so the other action keeps its current assignment. You can then capture it separately. The same press and hold behavior applies to any note or CC mapped to Jump & Play. The popup rejects a control assigned to both actions; click **Cancel** to stop a capture in progress.
 
 Your profile and custom mappings stay in Chrome's local extension storage. See the [privacy policy](PRIVACY.md) for details.
 
