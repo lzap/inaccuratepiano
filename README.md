@@ -70,6 +70,11 @@ The package is written to `dist/inaccurate-piano-midi-<version>.zip`, where `<ve
 3. Click **Load unpacked** and select the project folder (the folder containing `manifest.json`).
 4. Open a YouTube watch page and follow the [setup steps](#setup). After changing the source, click **Reload** on the extension card.
 
+## Supported browsers
+
+- **Supported:** Google Chrome
+- **Untested:** Chromium, Microsoft Edge
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
