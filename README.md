@@ -1,10 +1,14 @@
 # Inaccurate Piano MIDI (Chrome Extension)
 
+[Get it from the Chrome Web Store](https://chromewebstore.google.com/detail/inaccurate-piano-midi/gioffbcabdejddelghllbajeeneagflj)
+
 Learning a piece from a YouTube video often means replaying the same few seconds over and over. Reaching for the mouse to pause, scrub back, and start again breaks your concentration and takes your hands away from the piano.
 
 Inaccurate Piano MIDI lets a connected MIDI keyboard or pedals control the video instead. You can mark a starting point, restart playback from it, or hold the control to pause and return to that point, all from your instrument. It is a small Chrome extension with no account or external service.
 
 ![The extension popup beside a piano practice video](store-assets/screenshot-1280x800.png)
+
+[![Watch the Inaccurate Piano MIDI video tutorial](https://img.youtube.com/vi/DU8FnSDe-7U/mqdefault.jpg)](https://www.youtube.com/watch?v=DU8FnSDe-7U)
 
 ## Cue and play while practicing
 
